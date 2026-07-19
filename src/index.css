@@ -12,6 +12,20 @@
     --lavender: #A78BFA;
     --snow: #E2E8F0;
     --muted: #94A3B8;
+
+    /* n8n Chat Widget Dark Theme - Midnight Bloom */
+    --chat--color-primary: #7C3AED;
+    --chat--color-primary-shade-50: #9B5CF6;
+    --chat--color-primary-shade-100: #5B21B6;
+    --chat--color-secondary: #F472B6;
+    --chat--color-secondary-shade-50: #F9A8D4;
+    --chat--color-white: #141627; /* Chat window background */
+    --chat--color-light: #1C1F35; /* Message bubbles and input */
+    --chat--color-light-shade-50: #0D0F1A;
+    --chat--color-light-shade-100: #0D0F1A;
+    --chat--color-dark: #E2E8F0; /* Primary text */
+    --chat--color-dark-shade-50: #94A3B8; /* Muted text */
+    --chat--color-font: #E2E8F0;
   }
 
   * { box-sizing: border-box; }
