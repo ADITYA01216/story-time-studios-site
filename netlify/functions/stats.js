@@ -1,5 +1,4 @@
 // netlify/functions/stats.js
-const https = require("https");
 
 const CHANNELS = [
   { id: "UCv57OuOmg5lzgmt2OKobMAw", name: "Story Time Kids" },
@@ -8,29 +7,9 @@ const CHANNELS = [
 ];
 
 let cache = { data: null, timestamp: 0 };
-const CACHE_MS = 15 * 60 * 1000;
+const CACHE_MS = 15 * 60 * 1000; // 15 minutes
 
-function fetchJson(url) {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      let data = "";
-      res.on("data", (chunk) => (data += chunk));
-      res.on("end", () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          try {
-            resolve(JSON.parse(data));
-          } catch (e) {
-            reject(new Error("Invalid JSON response"));
-          }
-        } else {
-          reject(new Error(`HTTP Error: ${res.statusCode}`));
-        }
-      });
-    }).on("error", reject);
-  });
-}
-
-exports.handler = async function (event, context) {
+export const handler = async function (event, context) {
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -38,13 +17,17 @@ exports.handler = async function (event, context) {
 
   const now = Date.now();
   if (cache.data && now - cache.timestamp < CACHE_MS) {
-    return { statusCode: 200, headers, body: JSON.stringify(cache.data) };
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(cache.data),
+    };
   }
 
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) {
     return {
-      statusCode: 200,
+      statusCode: 200, // Return 200 so UI handles gracefully
       headers,
       body: JSON.stringify({ error: "API key not configured" }),
     };
@@ -52,12 +35,18 @@ exports.handler = async function (event, context) {
 
   try {
     const ids = CHANNELS.map((c) => c.id).join(",");
-    const chJson = await fetchJson(
+    const chRes = await fetch(
       `https://www.googleapis.com/youtube/v3/channels?part=statistics,contentDetails&id=${ids}&key=${apiKey}`
     );
 
+    if (!chRes.ok) {
+      throw new Error(`YouTube Channels API error: ${chRes.status}`);
+    }
+
+    const chJson = await chRes.json();
+
     if (!chJson.items || chJson.items.length === 0) {
-      throw new Error("No channel data returned");
+      throw new Error("No channel data returned from YouTube API");
     }
 
     const channels = await Promise.all(
@@ -69,13 +58,16 @@ exports.handler = async function (event, context) {
 
         if (uploadsId) {
           try {
-            const plJson = await fetchJson(
+            const plRes = await fetch(
               `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=1&key=${apiKey}`
             );
-            const latest = plJson.items?.[0]?.snippet;
-            latestVideoId = latest?.resourceId?.videoId ?? null;
-            latestVideoTitle = latest?.title ?? null;
-          } catch (e) {
+            if (plRes.ok) {
+              const plJson = await plRes.json();
+              const latest = plJson.items?.[0]?.snippet;
+              latestVideoId = latest?.resourceId?.videoId ?? null;
+              latestVideoTitle = latest?.title ?? null;
+            }
+          } catch {
             // Ignore playlist error
           }
         }
@@ -103,9 +95,13 @@ exports.handler = async function (event, context) {
     const data = { channels, totals, updatedAt: now };
     cache = { data, timestamp: now };
 
-    return { statusCode: 200, headers, body: JSON.stringify(data) };
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(data),
+    };
   } catch (err) {
-    console.error(err);
+    console.error("Stats function error:", err.message);
     if (cache.data) {
       return {
         statusCode: 200,
