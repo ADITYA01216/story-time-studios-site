@@ -51,6 +51,18 @@ export default function App() {
         createChat({
           webhookUrl: "https://aditya12166661.app.n8n.cloud/webhook/64834d14-d6f9-4f8b-ab8c-1d28e6bd668f/chat",
           mode: "window",
+          initialMessages: [
+            "Welcome to Story Time Studios! ✨",
+            "I'm here to help answer any questions about our YouTube channels, content, or partnership opportunities. How can I assist you today?"
+          ],
+          i18n: {
+            en: {
+              title: "Story Time Studios",
+              subtitle: "We're here to help you 24/7.",
+              getStarted: "Start Conversation",
+              inputPlaceholder: "Type your question...",
+            }
+          },
           theme: {
             button: {
               backgroundColor: "#7C3AED",
@@ -59,6 +71,7 @@ export default function App() {
             chatWindow: {
               backgroundColor: "#141627",
               textColor: "#E2E8F0",
+              welcomeMessage: "Welcome to Story Time Studios! ✨",
               textInput: {
                 backgroundColor: "#1C1F35",
                 textColor: "#E2E8F0",
