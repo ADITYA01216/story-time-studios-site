@@ -1,6 +1,5 @@
 // netlify/functions/stats.js
-// YouTube Data API v3 proxy — keeps YOUTUBE_API_KEY server-side only.
-// Caches combined result in-memory for 15 minutes.
+const https = require("https");
 
 const CHANNELS = [
   { id: "UCv57OuOmg5lzgmt2OKobMAw", name: "Story Time Kids" },
@@ -9,9 +8,29 @@ const CHANNELS = [
 ];
 
 let cache = { data: null, timestamp: 0 };
-const CACHE_MS = 15 * 60 * 1000; // 15 minutes
+const CACHE_MS = 15 * 60 * 1000;
 
-exports.handler = async function () {
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(new Error("Invalid JSON response"));
+          }
+        } else {
+          reject(new Error(`HTTP Error: ${res.statusCode}`));
+        }
+      });
+    }).on("error", reject);
+  });
+}
+
+exports.handler = async function (event, context) {
   const headers = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
@@ -19,64 +38,45 @@ exports.handler = async function () {
 
   const now = Date.now();
   if (cache.data && now - cache.timestamp < CACHE_MS) {
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify(cache.data),
-    };
+    return { statusCode: 200, headers, body: JSON.stringify(cache.data) };
   }
 
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) {
     return {
-      statusCode: 500,
+      statusCode: 200,
       headers,
       body: JSON.stringify({ error: "API key not configured" }),
     };
   }
 
   try {
-    // 1. Fetch all three channels in one request (statistics + contentDetails)
     const ids = CHANNELS.map((c) => c.id).join(",");
-    const chRes = await fetch(
+    const chJson = await fetchJson(
       `https://www.googleapis.com/youtube/v3/channels?part=statistics,contentDetails&id=${ids}&key=${apiKey}`
     );
 
-    if (!chRes.ok) {
-      throw new Error(`YouTube Channels API error: ${chRes.status}`);
-    }
-
-    const chJson = await chRes.json();
-
     if (!chJson.items || chJson.items.length === 0) {
-      throw new Error("No channel data returned from YouTube API");
+      throw new Error("No channel data returned");
     }
 
-    // 2. For each channel, fetch the latest video from the uploads playlist
     const channels = await Promise.all(
       chJson.items.map(async (item) => {
-        const meta = CHANNELS.find((c) => c.id === item.id) || {
-          name: "Unknown",
-        };
-        const uploadsId =
-          item.contentDetails?.relatedPlaylists?.uploads ?? null;
-
+        const meta = CHANNELS.find((c) => c.id === item.id) || { name: "Unknown" };
+        const uploadsId = item.contentDetails?.relatedPlaylists?.uploads ?? null;
         let latestVideoId = null;
         let latestVideoTitle = null;
 
         if (uploadsId) {
           try {
-            const plRes = await fetch(
+            const plJson = await fetchJson(
               `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${uploadsId}&maxResults=1&key=${apiKey}`
             );
-            if (plRes.ok) {
-              const plJson = await plRes.json();
-              const latest = plJson.items?.[0]?.snippet;
-              latestVideoId = latest?.resourceId?.videoId ?? null;
-              latestVideoTitle = latest?.title ?? null;
-            }
-          } catch {
-            // Non-fatal: channel card still renders, just without latest video
+            const latest = plJson.items?.[0]?.snippet;
+            latestVideoId = latest?.resourceId?.videoId ?? null;
+            latestVideoTitle = latest?.title ?? null;
+          } catch (e) {
+            // Ignore playlist error
           }
         }
 
@@ -92,7 +92,6 @@ exports.handler = async function () {
       })
     );
 
-    // 3. Compute totals
     const totals = channels.reduce(
       (acc, c) => ({
         subscribers: acc.subscribers + c.subscribers,
@@ -104,14 +103,9 @@ exports.handler = async function () {
     const data = { channels, totals, updatedAt: now };
     cache = { data, timestamp: now };
 
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify(data),
-    };
+    return { statusCode: 200, headers, body: JSON.stringify(data) };
   } catch (err) {
-    console.error("Stats function error:", err.message);
-    // If we have stale cache, return it rather than a 500
+    console.error(err);
     if (cache.data) {
       return {
         statusCode: 200,
@@ -120,7 +114,7 @@ exports.handler = async function () {
       };
     }
     return {
-      statusCode: 500,
+      statusCode: 200,
       headers,
       body: JSON.stringify({ error: err.message }),
     };
