@@ -11,7 +11,7 @@ import WhyCollaborate from "./sections/WhyCollaborate";
 import InstagramSection from "./sections/Instagram";
 import Collaborate from "./sections/Collaborate";
 import Footer from "./sections/Footer";
-import ChatDemo from "./components/ChatDemo";
+import CustomChatButton from "./components/CustomChatButton";
 
 export default function App() {
   const { data: statsData, loading: statsLoading } = useYouTubeStats();
@@ -42,6 +42,12 @@ export default function App() {
           --chat--color-font: #E2E8F0 !important;
           --chat--window--background-color: #141627 !important;
         }
+        /* Aggressively hide the default n8n toggle button */
+        .chat-toggle-button, .n8n-chat-widget__toggle, button[class*="chat-toggle"] {
+           display: none !important;
+           opacity: 0 !important;
+           pointer-events: none !important;
+        }
       `;
       document.head.appendChild(style);
     }
@@ -66,8 +72,8 @@ export default function App() {
           },
           theme: {
             button: {
-              backgroundColor: "#7C3AED",
-              iconColor: "#ffffff",
+              backgroundColor: "transparent",
+              iconColor: "transparent",
             },
             chatWindow: {
               backgroundColor: "#141627",
@@ -90,6 +96,18 @@ export default function App() {
         });
       })
       .catch((err) => console.error("Failed to load n8n chat widget:", err));
+      
+      // Secondary cleanup: actively hide default toggle if it bypasses CSS
+      const interval = setInterval(() => {
+        const defaultToggle = document.querySelector('.chat-window-toggle') || document.querySelector('[class*="chat-toggle"]');
+        if (defaultToggle) {
+          defaultToggle.style.display = 'none';
+          defaultToggle.style.opacity = '0';
+          defaultToggle.style.pointerEvents = 'none';
+        }
+      }, 500);
+      
+      return () => clearInterval(interval);
   }, []);
 
   return (
@@ -106,7 +124,7 @@ export default function App() {
         <Collaborate />
       </main>
       <Footer />
-      <ChatDemo />
+      <CustomChatButton />
     </div>
   );
 }

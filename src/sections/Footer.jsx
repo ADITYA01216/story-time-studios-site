@@ -121,7 +121,7 @@ export default function Footer() {
             © {year} Story Time Studios. All rights reserved.
           </p>
           <p className="font-mono text-xs text-muted opacity-60 flex items-center gap-1">
-            Site by <span className="text-lavender font-medium">[Your Name]</span>
+            Site by <a href="mailto:adityaagarwal1205@gmail.com" className="text-lavender font-medium hover:text-snow transition-colors">Aditya Agarwal</a>
             <span className="mx-1">·</span>
             Made with <Heart size={10} className="text-pink-brand fill-current mx-0.5" /> and stories
           </p>
