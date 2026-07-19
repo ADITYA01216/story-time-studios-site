@@ -22,6 +22,27 @@ export default function App() {
       link.href = "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css";
       link.rel = "stylesheet";
       document.head.appendChild(link);
+
+      // Force inject theme overrides AFTER the CDN stylesheet
+      const style = document.createElement("style");
+      style.innerHTML = `
+        :root {
+          --chat--color-primary: #7C3AED !important;
+          --chat--color-primary-shade-50: #9B5CF6 !important;
+          --chat--color-primary-shade-100: #5B21B6 !important;
+          --chat--color-secondary: #F472B6 !important;
+          --chat--color-secondary-shade-50: #F9A8D4 !important;
+          --chat--color-white: #141627 !important;
+          --chat--color-light: #1C1F35 !important;
+          --chat--color-light-shade-50: #0D0F1A !important;
+          --chat--color-light-shade-100: #0D0F1A !important;
+          --chat--color-dark: #E2E8F0 !important;
+          --chat--color-dark-shade-50: #94A3B8 !important;
+          --chat--color-font: #E2E8F0 !important;
+          --chat--window--background-color: #141627 !important;
+        }
+      `;
+      document.head.appendChild(style);
     }
 
     // Dynamically import the n8n chat module and initialize
