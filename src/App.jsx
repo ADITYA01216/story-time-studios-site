@@ -11,6 +11,7 @@ import WhyCollaborate from "./sections/WhyCollaborate";
 import InstagramSection from "./sections/Instagram";
 import Collaborate from "./sections/Collaborate";
 import Footer from "./sections/Footer";
+import ChatDemo from "./components/ChatDemo";
 
 export default function App() {
   const { data: statsData, loading: statsLoading } = useYouTubeStats();
@@ -105,6 +106,7 @@ export default function App() {
         <Collaborate />
       </main>
       <Footer />
+      <ChatDemo />
     </div>
   );
 }
