@@ -28,7 +28,30 @@ export default function App() {
     import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js")
       .then(({ createChat }) => {
         createChat({
-          webhookUrl: "https://aditya12166661.app.n8n.cloud/webhook/64834d14-d6f9-4f8b-ab8c-1d28e6bd668f/chat"
+          webhookUrl: "https://aditya12166661.app.n8n.cloud/webhook/64834d14-d6f9-4f8b-ab8c-1d28e6bd668f/chat",
+          mode: "window",
+          theme: {
+            button: {
+              backgroundColor: "#7C3AED",
+              iconColor: "#ffffff",
+            },
+            chatWindow: {
+              backgroundColor: "#141627",
+              textColor: "#E2E8F0",
+              textInput: {
+                backgroundColor: "#1C1F35",
+                textColor: "#E2E8F0",
+              },
+              userMessage: {
+                backgroundColor: "#7C3AED",
+                textColor: "#ffffff",
+              },
+              botMessage: {
+                backgroundColor: "#1C1F35",
+                textColor: "#E2E8F0",
+              },
+            },
+          },
         });
       })
       .catch((err) => console.error("Failed to load n8n chat widget:", err));
