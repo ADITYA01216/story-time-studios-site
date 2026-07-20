@@ -26,6 +26,9 @@
     --chat--color-dark: #E2E8F0; /* Primary text */
     --chat--color-dark-shade-50: #94A3B8; /* Muted text */
     --chat--color-font: #E2E8F0;
+    --chat--message--user--color: #E2E8F0;
+    --chat--message--bot--color: #E2E8F0;
+    --chat--input--text-color: #E2E8F0;
   }
 
   * { box-sizing: border-box; }
