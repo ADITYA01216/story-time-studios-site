@@ -18,13 +18,19 @@ export default function Collaborate() {
     e.preventDefault();
     const form = e.target;
     const data = new FormData(form);
-    fetch("/", {
+    
+    // Switch to FormSubmit.co for instant email delivery directly to inbox
+    fetch("https://formsubmit.co/ajax/rekha.yt.business@gmail.com", {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams(data).toString(),
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify(Object.fromEntries(data)),
     })
-      .then(() => setSubmitted(true))
-      .catch(() => setSubmitted(true));
+      .then(response => response.json())
+      .then(data => setSubmitted(true))
+      .catch(error => setSubmitted(true));
   }
 
   return (
