@@ -31,6 +31,18 @@ export default function CustomChatButton() {
       // Ignore clicks on our own button
       if (buttonRef.current && buttonRef.current.contains(event.target)) return;
 
+      const path = event.composedPath ? event.composedPath() : [];
+      
+      // Check if they clicked the internal close button (the pink X)
+      const clickedCloseButton = path.some(el => el && el.classList && el.classList.contains('chat-close-button'));
+      if (clickedCloseButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        clickN8nToggle();
+        setIsOpen(false);
+        return;
+      }
+
       // Ignore clicks inside the n8n chat window
       const chatWindow = document.querySelector('.chat-window');
       if (chatWindow && chatWindow.contains(event.target)) return;
