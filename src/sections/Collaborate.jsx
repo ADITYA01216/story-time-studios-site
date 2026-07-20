@@ -98,32 +98,15 @@ export default function Collaborate() {
 
           {/* Contact form */}
           <div className="card p-8" style={{ background: "#141627" }}>
-            {submitted ? (
-              <div className="flex flex-col items-center justify-center h-full text-center gap-4 py-8">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                  style={{ background: "rgba(124,58,237,0.15)", border: "1.5px solid rgba(124,58,237,0.3)", boxShadow: "0 0 25px rgba(124,58,237,0.2)" }}>
-                  <Zap size={28} className="text-lavender" />
-                </div>
-                <h3 className="font-display font-semibold text-snow"
-                  style={{ fontSize: "1.3rem", fontVariationSettings: "'opsz' 18, 'wght' 600" }}>
-                  Message Received! 🎉
-                </h3>
-                <p className="font-body text-muted text-sm">
-                  Thanks for reaching out. We'll get back to you soon.
-                </p>
-              </div>
-            ) : (
               <form
-                name="collaborate"
+                action="https://formsubmit.co/rekha.yt.business@gmail.com"
                 method="POST"
-                data-netlify="true"
-                netlify-honeypot="bot-field"
-                onSubmit={handleSubmit}
                 className="flex flex-col gap-5"
               >
-                <input type="hidden" name="form-name" value="collaborate" />
-                <p className="hidden"><label>Don't fill this: <input name="bot-field" /></label></p>
-
+                {/* FormSubmit Configuration */}
+                <input type="hidden" name="_subject" value="New Partnership Request from Website!" />
+                <input type="hidden" name="_captcha" value="false" />
+                
                 {[
                   { id: "collab-name", name: "name", type: "text", label: "Your Name", placeholder: "Priya Sharma" },
                   { id: "collab-email", name: "email", type: "email", label: "Email", placeholder: "priya@yourbrand.com" },
@@ -190,7 +173,6 @@ export default function Collaborate() {
                   <Send size={15} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </button>
               </form>
-            )}
           </div>
         </div>
       </div>
