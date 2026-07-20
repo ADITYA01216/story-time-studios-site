@@ -42,11 +42,16 @@ export default function App() {
           --chat--color-font: #E2E8F0 !important;
           --chat--window--background-color: #141627 !important;
         }
-        /* Aggressively hide the default n8n toggle button */
-        .chat-toggle-button, .n8n-chat-widget__toggle, button[class*="chat-toggle"] {
-           display: none !important;
+        /* Hide the default n8n toggle button visually, but keep it in the DOM so .click() works */
+        .chat-window-toggle {
            opacity: 0 !important;
            pointer-events: none !important;
+           position: fixed !important;
+           bottom: -100px !important;
+           right: -100px !important;
+           width: 1px !important;
+           height: 1px !important;
+           overflow: hidden !important;
         }
       `;
       document.head.appendChild(style);
@@ -58,6 +63,7 @@ export default function App() {
         createChat({
           webhookUrl: "https://aditya12166661.app.n8n.cloud/webhook/64834d14-d6f9-4f8b-ab8c-1d28e6bd668f/chat",
           mode: "window",
+          showWindowCloseButton: true,
           initialMessages: [
             "Welcome to Story Time Studios! ✨",
             "I'm here to help answer any questions about our YouTube channels, content, or partnership opportunities. How can I assist you today?"
@@ -68,6 +74,7 @@ export default function App() {
               subtitle: "We're here to help you 24/7.",
               getStarted: "Start Conversation",
               inputPlaceholder: "Type your question...",
+              closeButtonTooltip: "Close chat",
             }
           },
           theme: {
@@ -96,18 +103,6 @@ export default function App() {
         });
       })
       .catch((err) => console.error("Failed to load n8n chat widget:", err));
-      
-      // Secondary cleanup: actively hide default toggle if it bypasses CSS
-      const interval = setInterval(() => {
-        const defaultToggle = document.querySelector('.chat-window-toggle') || document.querySelector('[class*="chat-toggle"]');
-        if (defaultToggle) {
-          defaultToggle.style.display = 'none';
-          defaultToggle.style.opacity = '0';
-          defaultToggle.style.pointerEvents = 'none';
-        }
-      }, 500);
-      
-      return () => clearInterval(interval);
   }, []);
 
   return (

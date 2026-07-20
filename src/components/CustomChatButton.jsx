@@ -1,75 +1,91 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Sparkles, X } from 'lucide-react';
 
 export default function CustomChatButton() {
   const [isOpen, setIsOpen] = useState(false);
   const buttonRef = useRef(null);
 
-  const toggleChat = () => {
-    if (isOpen) {
-      if (window.Chatbot && window.Chatbot.close) window.Chatbot.close();
-      setIsOpen(false);
-    } else {
-      if (window.Chatbot && window.Chatbot.open) {
-        window.Chatbot.open();
-      } else {
-        // Fallback: simulate click on the invisible default toggle button
-        const defaultToggle = document.querySelector('.chat-window-toggle') || document.querySelector('[class*="chat-toggle"]');
-        if (defaultToggle) {
-          defaultToggle.click();
-        }
-      }
-      setIsOpen(true);
+  // Find the real n8n toggle button in the DOM and click it
+  const clickN8nToggle = useCallback(() => {
+    const toggle = document.querySelector('.chat-window-toggle');
+    if (toggle) {
+      toggle.click();
+      return true;
     }
-  };
+    return false;
+  }, []);
 
+  const toggleChat = useCallback(() => {
+    const didClick = clickN8nToggle();
+    if (didClick) {
+      setIsOpen(prev => !prev);
+    }
+  }, [clickN8nToggle]);
+
+  // Close chat when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!isOpen) return;
+    if (!isOpen) return;
 
-      // Don't close if they clicked our toggle button itself
+    const handleClickOutside = (event) => {
+      // Ignore clicks on our own button
       if (buttonRef.current && buttonRef.current.contains(event.target)) return;
 
-      // Check if they clicked inside the n8n chat window.
-      // event.composedPath() allows us to pierce through Shadow DOMs.
-      const path = event.composedPath ? event.composedPath() : [];
-      const clickedInsideChat = path.some(el => {
-        if (el && el.classList) {
-          return Array.from(el.classList).some(cls => cls.includes('chat') || cls.includes('n8n'));
-        }
-        // Check if the element is the shadow root host itself
-        if (el && el.id && (el.id.includes('chat') || el.id.includes('n8n'))) return true;
-        return false;
-      });
+      // Ignore clicks inside the n8n chat window
+      const chatWindow = document.querySelector('.chat-window');
+      if (chatWindow && chatWindow.contains(event.target)) return;
 
-      if (clickedInsideChat) return;
+      // Ignore clicks inside the n8n chat wrapper (covers header, input, etc.)
+      const chatWrapper = document.querySelector('.chat-window-wrapper');
+      if (chatWrapper && chatWrapper.contains(event.target)) return;
 
-      // Clicked outside, so close the chat
-      if (window.Chatbot && window.Chatbot.close) window.Chatbot.close();
+      // Clicked outside — close the chat
+      clickN8nToggle();
       setIsOpen(false);
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside); // For mobile
+    // Use a slight delay so the current click doesn't immediately trigger close
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside, true);
+      document.addEventListener('touchstart', handleClickOutside, true);
+    }, 100);
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside, true);
+      document.removeEventListener('touchstart', handleClickOutside, true);
     };
+  }, [isOpen, clickN8nToggle]);
+
+  // Sync state if user closes via the built-in close button inside the chat
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const chatWindow = document.querySelector('.chat-window');
+      if (chatWindow) {
+        const isVisible = chatWindow.offsetParent !== null && 
+                          getComputedStyle(chatWindow).display !== 'none';
+        if (!isVisible && isOpen) {
+          setIsOpen(false);
+        }
+      }
+    }, 300);
+    return () => clearInterval(interval);
   }, [isOpen]);
 
   return (
-    <button 
+    <button
       ref={buttonRef}
       onClick={toggleChat}
-      className={`fixed bottom-5 right-5 z-[9998] flex items-center justify-center w-[60px] h-[60px] rounded-full transition-all hover:-translate-y-1 ${
-        isOpen 
-          ? 'bg-navy-card border border-violet/30 hover:bg-navy-card2 shadow-[0_0_20px_rgba(0,0,0,0.5)]' 
-          : 'bg-gradient-to-br from-violet to-pink shadow-[0_0_30px_rgba(124,58,237,0.5)] hover:shadow-[0_0_40px_rgba(244,114,182,0.6)]'
+      className={`fixed bottom-5 right-5 z-[9998] flex items-center justify-center w-[60px] h-[60px] rounded-full transition-all duration-300 hover:-translate-y-1 ${
+        isOpen
+          ? 'bg-[#1C1F35] border border-[rgba(124,58,237,0.4)] shadow-[0_0_20px_rgba(0,0,0,0.5)] rotate-90'
+          : 'bg-gradient-to-br from-[#7C3AED] to-[#F472B6] shadow-[0_0_30px_rgba(124,58,237,0.5)] hover:shadow-[0_0_40px_rgba(244,114,182,0.6)]'
       }`}
-      aria-label={isOpen ? "Close Chat" : "Open Chat"}
+      aria-label={isOpen ? 'Close Chat' : 'Open Chat'}
     >
-      {isOpen ? <X className="w-6 h-6 text-snow" /> : <Sparkles className="w-7 h-7 text-white" />}
+      {isOpen
+        ? <X className="w-6 h-6 text-[#E2E8F0]" />
+        : <Sparkles className="w-7 h-7 text-white" />
+      }
     </button>
   );
 }
