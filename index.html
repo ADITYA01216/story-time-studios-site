@@ -20,6 +20,14 @@
     />
   </head>
   <body>
+    <!-- A little help for the Netlify post-processing bots to detect the form -->
+    <form name="collaborate" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <input type="text" name="collaboration_type" />
+      <textarea name="message"></textarea>
+    </form>
+    
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
