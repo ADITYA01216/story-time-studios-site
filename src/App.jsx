@@ -42,13 +42,12 @@ export default function App() {
           --chat--color-font: #E2E8F0 !important;
           --chat--window--background-color: #141627 !important;
         }
-        /* Hide the default n8n toggle button visually, but keep it in the DOM so .click() works */
+        /* Hide the default n8n toggle button visually, but keep it clickable via JS */
         .chat-window-toggle {
            opacity: 0 !important;
-           pointer-events: none !important;
            position: fixed !important;
-           bottom: -100px !important;
-           right: -100px !important;
+           bottom: -200px !important;
+           right: -200px !important;
            width: 1px !important;
            height: 1px !important;
            overflow: hidden !important;

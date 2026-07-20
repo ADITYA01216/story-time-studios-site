@@ -9,7 +9,8 @@ export default function CustomChatButton() {
   const clickN8nToggle = useCallback(() => {
     const toggle = document.querySelector('.chat-window-toggle');
     if (toggle) {
-      toggle.click();
+      // Use dispatchEvent for maximum reliability
+      toggle.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
       return true;
     }
     return false;
